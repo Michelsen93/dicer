@@ -19,28 +19,39 @@ fn interpretLine(line: []u8) !void {
     _ = line;
 }
 
-fn getDiceRoll(command: []const u8) error{ Overflow, InvalidCharacter }!u8 {
-    var dices = std.mem.split(u8, command, "d");
-    if (dices.next()) |val| {
-        var result = try std.fmt.parseInt(u8, val, 10);
-        while (dices.next()) |value| {
-            var multiplyer = try std.fmt.parseInt(u8, value[0..], 10);
-            result = result * multiplyer;
+fn getDiceRoll(command: []const u8) error{ Overflow, InvalidCharacter }!u32 {
+    var diceCmd = std.mem.split(u8, command, "d");
+    var result: u32 = 0;
+    if (diceCmd.next()) |numDiceCmd| {
+        var numDices = try std.fmt.parseInt(u8, numDiceCmd, 10);
+        if (diceCmd.next()) |diceSizeCmd| {
+            var diceSize = try std.fmt.parseInt(u8, diceSizeCmd[0..], 10);
+            var i: u8 = 0;
+            while (i < numDices) : (i += 1) {
+                result += getRandomNumber(diceSize);
+            }
         }
-        return result;
     }
-    return 0;
+    return result;
+}
+fn getRandomNumber(diceSize: u8) u8 {
+    const rand = std.crypto.random;
+    return rand.intRangeAtMost(u8, 1, diceSize);
 }
 
 test "single diceroll" {
     const x = try getDiceRoll("1d2");
-    try std.testing.expect(x == 2);
+    try std.testing.expect(x >= 1);
+    try std.testing.expect(x <= 2);
     const u = try getDiceRoll("1d6");
-    try testing.expect(u == 6);
+    try testing.expect(u <= 6);
+    try testing.expect(u >= 1);
 }
 test "multiple diceroll" {
     const x = try getDiceRoll("2d2");
-    try std.testing.expect(x == 4);
+    try std.testing.expect(x >= 2);
+    try std.testing.expect(x <= 4);
     const u = try getDiceRoll("2d6");
-    try testing.expect(u == 12);
+    try testing.expect(u <= 12);
+    try testing.expect(u >= 2);
 }
