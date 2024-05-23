@@ -1,19 +1,19 @@
 const std = @import("std");
 const testing = @import("std").testing;
+const resources = @import("resources.zig");
 
 pub fn main() !void {
     const stdin = std.io.getStdIn().reader();
     const stdout = std.io.getStdOut().writer();
-    try stdout.print("To roll a dice type number of dices followed by [d] then size of dice (1d20)\n", .{});
+    try stdout.print("{s}", .{resources.introduction});
     while (true) {
-        try stdout.print("Enter dice: ", .{});
+        try stdout.print("{s}", .{resources.inputPrefix});
         const bare_line = try stdin.readUntilDelimiterAlloc(std.heap.page_allocator, '\n', 8192);
         defer std.heap.page_allocator.free(bare_line);
         //This is because windows uses \r\n as new line
         const line = std.mem.trim(u8, bare_line, "\r");
         const result = try getDiceRoll(line);
-
-        try stdout.print("Result: {d}\n", .{result});
+        try stdout.print("{s}{d}\n", .{ resources.resultPrefix, result });
     }
 }
 
